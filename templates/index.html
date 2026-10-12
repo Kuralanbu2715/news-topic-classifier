@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}NewsLens — Classify News{% endblock %}
+{% block content %}
+<section class="hero p-4 p-md-5 mb-4">
+  <div class="eyebrow">MACHINE LEARNING · TEXT CLASSIFICATION</div>
+  <h1 class="display-5 fw-bold mt-2">Understand the topic.<br><span class="accent">In a headline.</span></h1>
+  <p class="lead text-secondary mt-3 mb-0">Paste a news headline or article and let the Naive Bayes model predict its category.</p>
+  <div class="row g-3 mt-3">
+    <div class="col-6 col-md-4"><div class="stat"><strong>{{ "{:,}".format(stats.rows) }}</strong><span>training examples</span></div></div>
+    <div class="col-6 col-md-4"><div class="stat"><strong>{{ stats.classes|length }}</strong><span>news categories</span></div></div>
+    <div class="col-12 col-md-4"><div class="stat"><strong>{{ stats.accuracy }}%</strong><span>test accuracy</span></div></div>
+  </div>
+</section>
+<div class="row g-4">
+  <div class="col-lg-7">
+    <div class="panel h-100">
+      <h2 class="h4 fw-bold">Classify an article</h2>
+      <p class="text-secondary">Try a headline from business, technology, entertainment, or health.</p>
+      <form method="post">
+        <label class="form-label fw-semibold" for="article">Headline or article text</label>
+        <textarea class="form-control article-input" id="article" name="article" rows="7" placeholder="Paste a news headline here..." required>{{ prediction.text if prediction else '' }}</textarea>
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-3">
+          <span class="small text-secondary">Longer, informative text often gives better results.</span>
+          <button class="btn btn-primary px-4" type="submit">Predict topic →</button>
+        </div>
+      </form>
+      <div class="d-flex flex-wrap gap-2 mt-4">
+        <button class="btn btn-sm btn-outline-secondary sample" data-text="Apple unveils a new smartphone with an advanced processor and improved battery life.">Technology example</button>
+        <button class="btn btn-sm btn-outline-secondary sample" data-text="Stocks rise as investors react to stronger quarterly company earnings.">Business example</button>
+        <button class="btn btn-sm btn-outline-secondary sample" data-text="The team secured a dramatic victory in the final minutes of the championship.">Sports example</button>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-5">
+    {% if prediction %}
+    <div class="panel result-panel h-100">
+      <div class="eyebrow">MODEL PREDICTION</div>
+      <h2 class="h3 fw-bold mt-2">{{ prediction.topic|title }}</h2>
+      <p class="text-secondary">Top predicted category</p>
+      <div class="confidence-number">{{ prediction.confidence }}%</div>
+      <div class="progress mb-4" role="progressbar" aria-valuenow="{{ prediction.confidence }}" aria-valuemin="0" aria-valuemax="100">
+        <div class="progress-bar" style="width: {{ prediction.confidence }}%"></div>
+      </div>
+      <h3 class="h6 fw-bold">Other likely categories</h3>
+      {% for label, prob in prediction.alternatives %}
+      <div class="prob-row">
+        <div class="d-flex justify-content-between small"><span>{{ label|title }}</span><span>{{ prob }}%</span></div>
+        <div class="mini-track"><div style="width: {{ prob }}%"></div></div>
+      </div>
+      {% endfor %}
+      <p class="small text-secondary mt-4 mb-0">Probabilities are model estimates, not guarantees of correctness.</p>
+    </div>
+    {% else %}
+    <div class="panel h-100">
+      <h2 class="h5 fw-bold">Topics in your dataset</h2>
+      <p class="text-secondary small">A quick look at the available training labels.</p>
+      {% for topic, count in topic_counts.items() %}
+      <div class="topic-row">
+        <div class="d-flex justify-content-between mb-1"><span>{{ topic|title }}</span><span class="text-secondary">{{ count }}</span></div>
+        <div class="mini-track"><div style="width: {{ (count / stats.rows * 100) if stats.rows else 0 }}%"></div></div>
+      </div>
+      {% endfor %}
+      <a class="btn btn-outline-primary mt-3" href="{{ url_for('evaluation') }}">Explore model performance →</a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+document.querySelectorAll('.sample').forEach(button => {
+  button.addEventListener('click', () => {
+    document.getElementById('article').value = button.dataset.text;
+    document.getElementById('article').focus();
+  });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Model Insights — NewsLens{% endblock %}
+{% block content %}
+<div class="page-heading mb-4">
+  <div class="eyebrow">MODEL EXPLORATION</div>
+  <h1 class="display-6 fw-bold mt-2">How well does it perform?</h1>
+  <p class="lead text-secondary">Evaluation on a held-out test split. Scores depend on the dataset in use.</p>
+</div>
+<div class="row g-3 mb-4">
+  <div class="col-md-4"><div class="panel metric-card"><span>Test accuracy</span><strong>{{ stats.accuracy }}%</strong></div></div>
+  <div class="col-md-4"><div class="panel metric-card"><span>Dataset rows</span><strong>{{ "{:,}".format(stats.rows) }}</strong></div></div>
+  <div class="col-md-4"><div class="panel metric-card"><span>Categories</span><strong>{{ stats.classes|length }}</strong></div></div>
+</div>
+<div class="panel mb-4">
+  <h2 class="h5 fw-bold">Per-category metrics</h2>
+  <div class="table-responsive mt-3">
+    <table class="table table-striped align-middle">
+      <thead><tr><th>Category</th><th>Precision</th><th>Recall</th><th>F1-score</th><th>Test samples</th></tr></thead>
+      <tbody>{% for row in report_rows %}
+      <tr><td class="fw-semibold">{{ row.label|title }}</td><td>{{ row.precision }}%</td><td>{{ row.recall }}%</td><td>{{ row.f1 }}%</td><td>{{ row.support }}</td></tr>
+      {% endfor %}</tbody>
+    </table>
+  </div>
+</div>
+<div class="panel">
+  <h2 class="h5 fw-bold">Confusion matrix</h2>
+  <p class="small text-secondary">Rows represent actual categories; columns represent predicted categories.</p>
+  <div class="table-responsive">
+    <table class="table table-bordered text-center matrix-table">
+      <thead><tr><th>Actual ↓ / Predicted →</th>{% for label in labels %}<th>{{ label|title }}</th>{% endfor %}</tr></thead>
+      <tbody>{% for i in range(labels|length) %}
+      <tr><th>{{ labels[i]|title }}</th>{% for value in matrix[i] %}<td>{{ value }}</td>{% endfor %}</tr>
+      {% endfor %}</tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
